@@ -1,0 +1,5 @@
+mutation DeleteCardList($id: ID!) {
+    CardListDelete(id: $id) {
+        id
+    }
+}

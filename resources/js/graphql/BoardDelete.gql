@@ -1,0 +1,5 @@
+mutation BoardDelete($id: ID!) {
+    BoardDelete(id: $id) {
+        id
+    }
+}

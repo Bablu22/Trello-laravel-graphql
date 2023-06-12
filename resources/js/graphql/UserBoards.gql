@@ -1,0 +1,9 @@
+query UserBoards($owner_id: ID!) {
+    userBoards(owner_id: $owner_id) {
+        id
+        title
+        lists {
+            id
+        }
+    }
+}

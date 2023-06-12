@@ -1,0 +1,6 @@
+mutation BoardCreate($title: String!, $owner_id: ID!) {
+    boardAdd(title: $title, owner_id: $owner_id) {
+        id
+        title
+    }
+}

@@ -1,0 +1,99 @@
+"A datetime string with format `Y-m-d H:i:s`, e.g. `2018-05-23 13:43:32`."
+scalar DateTime
+    @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
+
+"Indicates what fields are available at the top level of a query operation."
+type Query {
+    users: [User!]!
+    user(id: ID! @eq): User @find
+    userBoards(owner_id: ID! @eq): [Board]
+        @all
+        @can(
+            ability: "viewOwnedboards"
+            model: "App\\Models\\User"
+            find: "owner_id"
+        )
+    board(id: ID! @eq): Board @find
+    me: User @auth
+}
+
+type Mutation {
+    CardAdd(input: CardAddInput! @spread): Card!
+        @create
+        @can(
+            ability: "createCard"
+            model: "App\\Models\\CardList"
+            find: "list_id"
+        )
+
+    CardDelete(id: ID! @eq): Card! @delete @can(ability: "delete", find: "id")
+
+    BoardDelete(id: ID! @eq): Board! @delete
+
+    CardListDelete(id: ID! @eq): CardList!
+        @delete
+        @can(ability: "delete", model: "App\\Models\\CardList", find: "id")
+
+    CardUpdate(id: ID! @eq, title: String): Card!
+        @update
+        @can(ability: "update", find: "id")
+
+    login(email: String!, password: String!): User!
+    logout: User @guard
+
+    register(
+        email: String! @rules(apply: ["required", "email", "unique:users"])
+        password: String! @rules(apply: ["required", "min:8"]) @hash
+        name: String! @rules(apply: ["required", "min:2"])
+    ): User @create @event(dispatch: "Illuminate\\Auth\\Events\\Registered")
+
+    boardAdd(title: String!, owner_id: ID!): Board! @create
+    listAdd(title: String!, board_id: ID!): CardList! @create
+}
+
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    email_verified_at: DateTime
+    created_at: DateTime!
+    updated_at: DateTime!
+    boards: [Board!]! @hasMany
+    cards: [Card!]! @hasMany
+}
+
+type Board {
+    id: ID!
+    created_at: DateTime!
+    updated_at: DateTime!
+    title: String!
+    lists: [CardList!]! @hasMany
+    owner: User! @belongsTo
+}
+
+type CardList {
+    id: ID!
+    created_at: DateTime!
+    updated_at: DateTime!
+    title: String!
+    cards: [Card!]! @hasMany
+    board: Board! @belongsTo
+    board_id: ID!
+}
+
+type Card {
+    id: ID!
+    created_at: DateTime!
+    updated_at: DateTime!
+    title: String!
+    order: Int!
+    list: CardList! @belongsTo
+    owner: User! @belongsTo
+}
+
+input CardAddInput {
+    title: String!
+    order: Int!
+    list_id: ID!
+    owner_id: ID!
+}
